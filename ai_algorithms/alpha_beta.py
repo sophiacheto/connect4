@@ -1,5 +1,5 @@
 from game_rules import constants as c, game_logic as game
-from heuristics import heuristic as h
+from ai_algorithms import heuristic as h
 import time, logging, numpy as np
 
 

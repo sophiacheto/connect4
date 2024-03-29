@@ -43,9 +43,9 @@ def get_ai_column(board: Board, game_mode: int) -> int:
 	"""Select the chose ai algorithm to make a move"""
 	chosen_column = 0
 	if game_mode == 2:
-		chosen_column = g.greedy(board, c.AI_PIECE, c.HUMAN_PIECE)
+		chosen_column = g.a_star(board, c.AI_PIECE, c.HUMAN_PIECE)
 	elif game_mode == 3:
-		chosen_column = g.predictive_greedy(board, c.AI_PIECE, c.HUMAN_PIECE)
+		chosen_column = g.a_star_adversarial(board, c.AI_PIECE, c.HUMAN_PIECE)
 	elif game_mode == 4:
 		chosen_column = a.alpha_beta(board)
 	elif game_mode == 5:

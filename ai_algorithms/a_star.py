@@ -2,11 +2,11 @@ import numpy as np
 from game_rules import constants as c 
 from game_rules import game_logic as game
 import logging
-from heuristics import heuristic as h
+from ai_algorithms import heuristic as h
 
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
-def greedy(board: np.ndarray, ai_piece: int, opponent_piece: int) -> int:
+def a_star(board: np.ndarray, ai_piece: int, opponent_piece: int) -> int:
     best_score = float('-inf')
     best_move = -1
     for col in range(c.COLUMNS):
@@ -20,7 +20,7 @@ def greedy(board: np.ndarray, ai_piece: int, opponent_piece: int) -> int:
     return best_move
 
 
-def predictive_greedy(board: np.ndarray, ai_piece: int, opponent_piece: int) -> int:
+def a_star_adversarial(board: np.ndarray, ai_piece: int, opponent_piece: int) -> int:
     move_score = float('-inf')
     best_move = -1
     best_opponent = 0;
@@ -29,7 +29,7 @@ def predictive_greedy(board: np.ndarray, ai_piece: int, opponent_piece: int) -> 
         cur_score = 0
         simulated_board = game.simulate_move(board, ai_piece, col)
 
-        opponent_col = greedy(simulated_board, opponent_piece, ai_piece)  
+        opponent_col = a_star(simulated_board, opponent_piece, ai_piece)  
         opponent_simulated_board = game.simulate_move(simulated_board, opponent_piece, opponent_col)
         cur_score = h.calculate_board_score(opponent_simulated_board, ai_piece, opponent_piece)
 
