@@ -29,8 +29,8 @@ python3 main.py
 ```
 <hr>
 
-<img src="./assets/Screenshot from 2024-03-08 16-17-30.png">
-<img src="./assets/Screenshot from 2024-03-08 16-17-34.png">
-<img src="./assets/Screenshot from 2024-03-08 16-16-02.png">
+<img src="./assets/inicio.png">
+<img src="./assets/modos.png">
+<img src="./assets/final.png">
 
 s
