@@ -3,15 +3,14 @@ import numpy as np
 import math
 import pygame
 from game_rules.board import Board
-import logging
 from ai_algorithms import a_star as g, alpha_beta as a, mcts as m
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def human_move(bd: Board, interface: any, board: np.ndarray, turn: int, event: any) -> bool:
 	"""Set the column of human move"""
 	col = get_human_column(interface, event)
 	if not is_valid(board, col): return False 
+
 	pygame.draw.rect(interface.screen, c.BACKGROUND_COLOR, (0,0, interface.width, interface.pixels-14))   
 	make_move(bd, interface, board, turn, col)
 	return True
@@ -52,12 +51,14 @@ def get_ai_column(board: Board, game_mode: int) -> int:
 		chosen_column = m.mcts(board)
 	return chosen_column
 
+
 def simulate_move(board: np.ndarray, piece: int, col: int) -> np.ndarray:
 	"""Simulate a move in a copy of the board"""
 	board_copy = board.copy()
 	row = get_next_open_row(board_copy, col)
 	drop_piece(board_copy, row, col, piece)
 	return board_copy
+
 
 def make_move(bd: Board, interface: any, board: np.ndarray, turn: int, move: int):
 	"""Make the move and see if the move is a winning one"""
