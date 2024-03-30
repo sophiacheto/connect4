@@ -1,6 +1,7 @@
 # Connect 4 - An AI-Powered Game
 
-This project implements the classic Connect 4 game with an optional Artificial Intelligence (AI) opponent. The objective remains the same: strategically place your colored discs to achieve a horizontal, vertical, or diagonal line of four to win. This project offers an engaging way to hone your Connect 4 skills or challenge the AI.
+This project implements the classic Connect 4 game with an optional Artificial Intelligence (AI) opponent. The objective remains the same: strategically place your colored discs to achieve a horizontal, vertical, or diagonal line of four pieces to win. This project offers an engaging way to hone your Connect 4 skills or challenge the AI.  
+AI algorithms: *A\*, Predictive A\*, Alpha Beta Pruning and Monte Carlo Tree Search.*
 
 ## Installation
 
@@ -33,4 +34,3 @@ python3 main.py
 <img src="./assets/modos.png">
 <img src="./assets/final.png">
 
-s
