@@ -1,35 +1,33 @@
 from game_rules import constants as c, game_logic as game
 from ai_algorithms import heuristic as h
-import time, logging, numpy as np
-
-
-NODES_VISITED = 1
-logging.basicConfig(level=logging.DEBUG, format='%(message)s')
+import numpy as np
 
 
 def alpha_beta(board: np.ndarray):
-    start_time = time.time()
-    global NODES_VISITED
-    NODES_VISITED = 1
+    """Return the best column chose by alpha_beta algorithm"""
     children = get_children(board, c.AI_PIECE)
-    melhor_jogada = -1
-    melhor_score = float('-inf')
+    depth_limit = 3    # qtd de níveis abaixo do atual que serão calculados
+    best_move = -1
+    best_score = float('-inf')
     for (child, col) in children:
-        score = calcular(child, 0, float('-inf'), float('+inf'), 4, False)
-        if score > melhor_score:
-            melhor_score = score
-            melhor_jogada = col
-    end_time = time.time()
-    logging.info(f"Tempo de resposta = {end_time-start_time}")
-    return melhor_jogada
+        if game.winning_move(child, c.AI_PIECE):
+            best_move = col
+            break
+        score = calcular(child, 1, float('-inf'), float('+inf'), depth_limit, False)
+        if score > best_score:
+            best_score = score
+            best_move = col
+    return best_move
+
 
 
 
 def calcular(board: np.ndarray, depth: int, alpha: int, beta: int, depth_limit: int, maximizing):
+    """Return the accumulated score for the current move"""
+
     if depth == depth_limit or game.winning_move(board, 1) or game.winning_move(board, 2):
         return h.calculate_board_score(board, c.AI_PIECE, c.HUMAN_PIECE)
 
-    
     if maximizing:
         maxEval = float('-inf')
         children = get_children(board, c.AI_PIECE)
@@ -55,9 +53,12 @@ def calcular(board: np.ndarray, depth: int, alpha: int, beta: int, depth_limit: 
 
 
 def get_children(board, piece) -> None:
-        children = []
-        if game.available_moves(board) == -1: return  
-        for col in game.available_moves(board):  
-            copy_board = game.simulate_move(board, piece, col)   
-            children.append((copy_board, col)) 
-        return children
+    """Return children of the actual state board"""
+    children = []
+    if game.available_moves(board) == -1: return  
+    for col in game.available_moves(board):  
+        copy_board = game.simulate_move(board, piece, col)   
+        children.append((copy_board, col)) 
+    return children
+
+
