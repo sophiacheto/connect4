@@ -5,9 +5,6 @@ from game_rules import constants as c
 from game_rules.board import Board
 import game_rules.game_logic as game
 from dataclasses import dataclass
-import logging
-
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 @dataclass
@@ -53,30 +50,27 @@ class Interface:
                     pygame.draw.circle(self.screen, c.PIECES_COLORS[turn], (posx, int(self.pixels/2)-7), self.rad)
                 pygame.display.update()
 
+                # jogada do humano:
                 if event.type == pygame.MOUSEBUTTONDOWN:	
-                    if turn == 1 or (turn == 2 and game_mode == 1):  # get human move
-                        if not game.human_move(bd, self, board, turn, event): continue  # make a move
-                        # if game.is_game_tied(board):
-                        #     self.show_draw
-                        #     break
+                    if turn == 1 or (turn == 2 and game_mode == 1):  # recebe a jogada do humano
+                        if not game.human_move(bd, self, board, turn, event): continue  # verifica se a coluna é valida
                         if game.winning_move(board, turn): 
                             game_over = True
                             break
                         turn = next(turns)
-                        
 
+                # jogada da IA:      
                 if turn != 1 and game_mode != 1: 
                     pygame.time.wait(15)
-                    game_over = game.ai_move(bd, self, game_mode, board, turn)
-                    if game_over: break     
+                    game_over = game.ai_move(bd, self, game_mode, board, turn)   # recebe jogada da IA e retorna se o jogo acabou,
+                    if game_over: break                                          # seja por vitória ou por empate
                     turn = next(turns)
 
-            # Evita que a ultima jogada no ultimo ponto possível retorne empate ao invès de vitória
-            if game.is_game_tied(board) and game_over == False:
-                self.show_draw(myfont)
-                break   
 
-        if not game.is_game_tied(board):
+        if game.is_game_tied(board):
+            self.show_draw(myfont)
+               
+        else:
             self.show_winner(myfont, turn)
             
         pygame.time.wait(10000)
@@ -128,7 +122,7 @@ class Interface:
 
 
     def choose_ai_option(self) -> int:
-        """Draw the AI option board: A*, MCTS, Alpha Beta or MCTS"""
+        """Draw the AI option board for A*, MCTS, Alpha Beta or MCTS"""
         while True:
             game_mode = 0
             for event in pygame.event.get():
@@ -192,11 +186,13 @@ class Interface:
         self.screen.blit(label, (350,15))
         pygame.display.update()
 
+
     def show_draw(self, myfont: any) -> None:
         """Print draw game message"""
-        label = myfont.render("Game tied!", True, c.BUTTON_TEXT_COLOR)
+        label = myfont.render("Game tied!", True, c.BOARD_COLOR)
         self.screen.blit(label, (400,15))
         pygame.display.update()
+
 
     def quit() -> None:
         pygame.quit()
