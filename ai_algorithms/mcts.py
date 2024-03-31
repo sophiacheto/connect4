@@ -24,10 +24,17 @@ class Node:
     def add_children(self) -> None:
         """add each possible move to a list of possible children for the current node/state"""
         if game.available_moves(self.board) == -1: return   # se não existirem jogadas possíveis, não adiciona nada
+        if len(self.children) != 0: return
         for col in game.available_moves(self.board):  # itera sobre todas as colunas possíveis a serem jogadas
             if self.current_player == c.HUMAN_PIECE:  copy_board = game.simulate_move(self.board, c.AI_PIECE, col)
             else: copy_board = game.simulate_move(self.board, c.HUMAN_PIECE, col)    # cria uma cópia do tabuleiro atual e adiciona a nova jogada a ele
             self.children.append((Node(board=copy_board, last_player=self.current_player, parent=self), col))  # adiciona cada tabuleiro gerado a uma lista, junto com a identificação da coluna que o gerou
+
+    def select_children(self):
+        if (len(self.children) > 4):
+            return random.sample(self.children, 4)
+        return self.children
+    
 
     def ucb(self) -> float:
         """calculate the Upper Confidence Bound of the node"""
@@ -47,23 +54,49 @@ class Node:
 class MCTS:
     def __init__(self, root: Node) -> None:
         self.root = root
+        self.best_node = root   # melhor nó para ser simulado = nó com maior ucb
+        self.best_score = 0     # ucb do melhor nó a ser simulado
+
+    def start(self, max_time: int):
+        self.root.add_children()
+        for child in self.root.children:
+            for _ in range(6):
+                result = self.rollout(child[0])
+                self.back_propagation(child[0], result)
+        return self.search(max_time)
+            
+
+    def update_best_node(self, cur_node: Node):
+        ucb = cur_node.ucb()
+        if ucb > self.best_score:
+            self.best_node = cur_node
+            self.best_score = ucb
+
 
     def search(self, max_time: int) -> int:
         """iterate through the tree of possible plays"""
         start_time = time.time()
         while time.time() - start_time < max_time:  # interrompe o ciclo quando o tempo estabelecido acaba
-            selected_node = self.select(self.root)    # seleciona o nó a ser estudado nessa iteração
-            result = selected_node.current_player    # ?????????????????????????????????????????????????????????????????????ww
-            if not game.winning_move(selected_node.board, c.AI_PIECE):   # se não tiver chegado a uma folha da árvore...
-                expanded_child = self.expand(selected_node)        # expande o nó atual, gerando todos os seus filhos e selecionando um aleatoriamente 
-                result = self.rollout(expanded_child)              # simula, a partir do nó atual, uma partida até chegar a um vencedor e guarda o número de quem venceu
-            self.back_propagation(selected_node, result)          # atualiza as informações (ucb e score) de todos os nós anteriores ao atual
-        return self.best_move()                                   # dos filhos do nó atual, retorna a coluna que gerou o filho com melhor score
+            selected_node = self.select(self.root)    # seleciona o nó folha a ser estudado nessa iteração
+            if selected_node.visits == 0:
+                result = self.rollout(selected_node)              # simula, a partir do nó atual, uma partida até chegar a um vencedor e guarda o número de quem venceu
+                self.back_propagation(selected_node, result)
+            else:
+                selected_node.add_children() 
+                for child in selected_node.select_children():
+                    result = self.rollout(child[0])              # simula, a partir do nó atual, uma partida até chegar a um vencedor e guarda o número de quem venceu
+                    self.back_propagation(child[0], result)
+        return self.best_move()    
+
 
     def select(self, node: Node) ->  Node:
-        """select node to be expanded"""
-        if len(node.children) > 0: node = self.best_child(node)   # se o nó tiver filhos, seleciona o seu melhor filho; se não, retorna ele próprio
-        return node
+        """select a leaf node to be expanded/simulated"""
+        if node.children == []: 
+            return node
+        else: 
+            node = self.best_child(node)   # se o nó tiver filhos, seleciona o seu melhor filho; se não, retorna ele próprio
+            return self.select(node)
+
     
     def best_child(self, node: Node) -> Node:
         """select the best child to be expanded based on their ucb's"""
@@ -77,14 +110,17 @@ class MCTS:
                 best_score = ucb
         return best_child
 
+
     def back_propagation(self, node: Node, result: int) -> None:
         """go through the tree to update the score of each node above the current one"""
         while node:    # itera sobre todos os nós "pais" do último nó da simulação
             node.visits += 1   # anota que mais uma simulação foi feita sobre esse nó
             if node.current_player == result:    # se o jogador desse nó tiver ganhado a partida simulada, anota mais uma vitória
                 node.wins+=1           
+            # self.update_best_node(node)
             node = node.parent              # passa ao pai do nó atual, para atualizar também o seu score
     
+
     def expand(self, node: Node) -> Node:
         """expand the node, by adding its children to the tree, and select one random child to be EXPLORED ?????????????????????????????W"""
         node.add_children()
@@ -96,12 +132,8 @@ class MCTS:
         board = node.board.copy()   # cria uma cópia do tabuleiro do nó para ser alterado
         players = itertools.cycle([c.AI_PIECE, c.HUMAN_PIECE])  # cria uma iteração sobre os jogadores de cada nível
         current_player = next(players)
-        
-        current_player = next(players)
-        col = a.a_star_adversarial(board, current_player, next(players))
-        board = game.simulate_move(board, current_player, col)
-        
         while not (game.winning_move(board, c.AI_PIECE) or game.winning_move(board, c.HUMAN_PIECE)):   # continua a simulação até o jogo simulado acabar
+            if game.is_game_tied(board): return 0
             current_player = next(players)
             values = game.available_moves(board)   # seleciona as colunas disponpiveis a receberem jogadas
             if values == -1:       # se não houver possibilidades de jogadas, retorna que não houve ganhador (empate)
@@ -111,26 +143,13 @@ class MCTS:
             board = game.simulate_move(board, current_player, col)  # simula a jogada escolhida
         return current_player       # retorna o jogador da jogada vencedora (ou seja, quem ganhou a simulação)
     
-        # """simulate a entire play until someone wins"""
-        # board = node.board.copy()   # cria uma cópia do tabuleiro do nó para ser alterado
-        # players = itertools.cycle([c.AI_PIECE, c.HUMAN_PIECE])  # cria uma iteração sobre os jogadores de cada nível
-        # current_player = next(players)
-        # while not (game.winning_move(board, c.AI_PIECE) or game.winning_move(board, c.HUMAN_PIECE)):   # continua a simulação até o jogo simulado acabar
-        #     if game.is_game_tied(board): return 0
-        #     current_player = next(players)
-        #     values = game.available_moves(board)   # seleciona as colunas disponpiveis a receberem jogadas
-        #     if values == -1:       # se não houver possibilidades de jogadas, retorna que não houve ganhador (empate)
-        #         current_player = 0
-        #         break
-        #     col = random.choice(values)    # escolhe aleatoriamente uma das possibilidades de jogada
-        #     board = game.simulate_move(board, current_player, col)  # simula a jogada escolhida
-        # return current_player       # retorna o jogador da jogada vencedora (ou seja, quem ganhou a simulação)
-    
+
     def best_move(self) -> int:
         """select the best column to be played based on their scores"""
         max_uct = float('-inf')
         scores = {}    # ?????????????????????????????????????????????????
         columns = []   # armazena as colunas que têm o melhor score de vitórias
+        print(self.root.children)
         for (child, col) in self.root.children:   # para cada possível jogada...
             uct = child.score()      # calcula o score do filho
             print(f"Coluna: {col}")
@@ -147,6 +166,6 @@ def mcts(board: np.ndarray) -> int:
     """Should return the best column option, chose by mcts"""
     root = Node(board=board, last_player=c.AI_PIECE)
     mcts = MCTS(root)
-    column = mcts.search(3)
-    print(column)
+    column = mcts.start(3)
+    print(column+1)
     return column
