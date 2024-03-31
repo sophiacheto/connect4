@@ -2,7 +2,6 @@ import time, math, numpy as np, random, itertools
 from game_rules import constants as c
 from game_rules import game_logic as game
 from math import sqrt, log
-from ai_algorithms import a_star as a
 
 
 class Node:
@@ -60,7 +59,7 @@ class MCTS:
         """simulate 6 times through each children of the root, before running mcts"""
         self.root.add_children()              
         for child in self.root.children:                                  # itera sobre todos os filhos da root
-            if game.winning_move(child[0], c.AI_PIECE): return child[1]   # se alguma jogada já for vitoriosa, retorna
+            if game.winning_move(child[0].board, c.AI_PIECE): return child[1]   # se alguma jogada já for vitoriosa, retorna
             for _ in range(6):                                            # simula 6 vezes sobre cada filho
                 result = self.rollout(child[0])
                 self.back_propagation(child[0], result)
@@ -141,7 +140,6 @@ class MCTS:
         max_score = float('-inf')
         scores = {}    # armazena os pares (col, score)
         columns = []   # armazena as colunas que têm o melhor score de vitórias
-        print(self.root.children)
         for (child, col) in self.root.children:   # para cada possível jogada...
             score = child.score()      
             print(f"Coluna: {col}")
@@ -153,8 +151,8 @@ class MCTS:
             if score == max_score:
                 columns.append(col)      # seleciona todos os filhos que geram o melhor score
         return random.choice(columns)    # escolhe aleatoriamente um dos filhos com o melhor score
-       
-            
+
+
 def mcts(board: np.ndarray) -> int:
     """Should return the best column option, chose by mcts"""
     root = Node(board=board, last_player=c.AI_PIECE)
