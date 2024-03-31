@@ -87,6 +87,7 @@ def drop_piece(board: np.ndarray, row: int, col: int, piece: int) -> None:
 
 def is_game_tied(board: np.ndarray) -> bool:
 	"""Assert if the game is tied"""
+	if winning_move(board, c.AI_PIECE) or winning_move(board, c.HUMAN_PIECE): return False
 	for i in range(len(board)):
 		for j in range(len(board[0])):
 			if board[i][j]==0: return False

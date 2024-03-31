@@ -66,11 +66,15 @@ class Interface:
                     if game_over: break                                          # seja por vitória ou por empate
                     turn = next(turns)
 
+            if game.is_game_tied(board):
+                self.show_draw(myfont)
+                break
+
         if game.winning_move(board, turn):
             self.show_winner(myfont, turn)
 
-        else:
-            self.show_draw(myfont)
+        # else:
+        #     self.show_draw(myfont)
             
         pygame.time.wait(10000)
 
