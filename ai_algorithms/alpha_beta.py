@@ -6,7 +6,7 @@ import numpy as np
 def alpha_beta(board: np.ndarray):
     """Return the best column chose by alpha_beta algorithm"""
     children = get_children(board, c.AI_PIECE)
-    depth_limit = 3    # qtd de níveis abaixo do atual que serão calculados
+    depth_limit = 5    # qtd de níveis abaixo do atual que serão calculados
     best_move = -1
     best_score = float('-inf')
     for (child, col) in children:
