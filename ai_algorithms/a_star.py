@@ -25,6 +25,9 @@ def a_star_adversarial(board: np.ndarray, ai_piece: int, opponent_piece: int) ->
 
     for col in possible_moves:
         simulated_board = game.simulate_move(board, ai_piece, col)
+        if game.winning_move(simulated_board, c.AI_PIECE): 
+            return col
+        
         opponent_col = a_star(simulated_board, opponent_piece, ai_piece)  
         opponent_simulated_board = game.simulate_move(simulated_board, opponent_piece, opponent_col)
         cur_score = h.calculate_board_score(opponent_simulated_board, ai_piece, opponent_piece)
@@ -33,7 +36,7 @@ def a_star_adversarial(board: np.ndarray, ai_piece: int, opponent_piece: int) ->
             best_move = col
             move_score = cur_score
    
-    print("Dica de jogada: coluna " + str(best_opponent))
+    print("Dica de jogada: coluna " + str(best_opponent+1))
     return best_move
 
 
